@@ -12,6 +12,7 @@
 
 static bool waiting = true;
 static bool addedJsLoadErrorObserver = false;
+static NSDate* now  = nil;
 
 @implementation RNSplashScreen
 - (dispatch_queue_t)methodQueue{
@@ -20,6 +21,7 @@ static bool addedJsLoadErrorObserver = false;
 RCT_EXPORT_MODULE(SplashScreen)
 
 + (void)show {
+    if(!now) now = [NSDate new];
     if (!addedJsLoadErrorObserver) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(jsLoadError:) name:RCTJavaScriptDidFailToLoadNotification object:nil];
         addedJsLoadErrorObserver = true;
@@ -27,7 +29,12 @@ RCT_EXPORT_MODULE(SplashScreen)
 
     while (waiting) {
         NSDate* later = [NSDate dateWithTimeIntervalSinceNow:0.1];
+        [NSThread sleepForTimeInterval:.5];
         [[NSRunLoop mainRunLoop] runUntilDate:later];
+        NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:now];
+        if (interval > 10) {
+            [[self class] hide];
+        }
     }
 }
 
